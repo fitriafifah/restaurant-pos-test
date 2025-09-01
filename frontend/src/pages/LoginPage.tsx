@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import api from '../lib/api';
 import { useAuth } from '../stores/auth';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, TextField, Button, Typography, Paper } from '@mui/material';
+import { Box, TextField, Button, Typography, Paper, Card, CardContent } from '@mui/material';
 
 const schema = z.object({
   email: z.string().email(),
@@ -35,47 +35,46 @@ export default function LoginPage() {
 
   return (
     <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'grey.100',
-      }}
-    >
-      <Paper elevation={3} sx={{ p: 4, width: 360, borderRadius: 3 }}>
-        <Typography variant="h5" mb={2} textAlign="center">
-          Login
-        </Typography>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <TextField
-            label="Email"
-            fullWidth
-            margin="normal"
-            {...register('email')}
-            error={!!errors.email}
-            helperText={errors.email?.message}
-          />
-          <TextField
-            label="Password"
-            type="password"
-            fullWidth
-            margin="normal"
-            {...register('password')}
-            error={!!errors.password}
-            helperText={errors.password?.message}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={isSubmitting}
-            sx={{ mt: 2 }}
-          >
-            Masuk
-          </Button>
-        </form>
-      </Paper>
-    </Box>
+    sx={{
+      flex: 1, // isi semua ruang kosong yang disediakan AppLayout
+      display: "flex",
+      alignItems: "center", // center secara vertikal
+      justifyContent: "center", // center secara horizontal
+    }}
+  >
+    <Paper elevation={3} sx={{ p: 4, width: 360, borderRadius: 3 }}>
+      <Typography variant="h5" mb={2} textAlign="center">
+        Login
+      </Typography>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <TextField
+          label="Email"
+          fullWidth
+          margin="normal"
+          {...register("email")}
+          error={!!errors.email}
+          helperText={errors.email?.message}
+        />
+        <TextField
+          label="Password"
+          type="password"
+          fullWidth
+          margin="normal"
+          {...register("password")}
+          error={!!errors.password}
+          helperText={errors.password?.message}
+        />
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          disabled={isSubmitting}
+          sx={{ mt: 2 }}
+        >
+          Masuk
+        </Button>
+      </form>
+    </Paper>
+  </Box>
   );
 }

@@ -1,4 +1,3 @@
-// src/components/AppLayout.tsx
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   AppBar,
@@ -40,7 +39,7 @@ export default function AppLayout() {
   ];
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+    <Box sx={{ display: "flex" }}>
       {/* HEADER */}
       <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
         <Toolbar>
@@ -73,10 +72,10 @@ export default function AppLayout() {
             [`& .MuiDrawer-paper`]: {
               width: drawerWidth,
               boxSizing: "border-box",
-              mt: 8, // biar ga ketiban AppBar
             },
           }}
         >
+          <Toolbar />
           <List>
             {menuItems.map((item) => (
               <ListItem key={item.path} disablePadding>
@@ -98,13 +97,14 @@ export default function AppLayout() {
         component="main"
         sx={{
           flexGrow: 1,
-          width: `calc(100% - ${user ? drawerWidth : 0}px)`,
-          mt: 8, // offset AppBar
-          bgcolor: "#f9f9f9",
+          width: "100%",
           minHeight: "calc(100vh - 64px)",
+          mt: 8,
+          p:3,
+          bgcolor: "#f9f9f9",
           display: "flex",
-          flexDirection: "column",
-          p: 3,
+          alignItems: "center",            
+          justifyContent: "center",
         }}
       >
         <Outlet />
