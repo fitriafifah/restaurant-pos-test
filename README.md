@@ -1,10 +1,10 @@
 📌 Restaurant POS Test
-Proyek ini adalah implementasi dari Developer Test untuk sistem Restaurant POS (Point of Sale) dengan backend Laravel dan frontend React + Vite + TypeScript.
+#Proyek ini adalah implementasi dari Developer Test untuk sistem Restaurant POS (Point of Sale) dengan backend Laravel dan frontend React + Vite + TypeScript.
 
 🚀 Tech Stack
-Backend: Laravel 10, Sanctum, DomPDF
-Frontend: React 18, Vite, TypeScript, React Query, React Hook Form + Zod, Material UI
-Database: MySQL (bisa pakai MariaDB / SQLite untuk testing)
+#Backend: Laravel 10, Sanctum, DomPDF
+#Frontend: React 18, Vite, TypeScript, React Query, React Hook Form + Zod, Material UI
+#Database: MySQL (bisa pakai MariaDB / SQLite untuk testing)
 
 📂 Struktur Project
 restaurant-pos-test/
