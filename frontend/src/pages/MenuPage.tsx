@@ -1,23 +1,28 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../lib/api';
 import { useForm } from 'react-hook-form';
+import type { SubmitHandler } from 'react-hook-form'; // ⬅️ pakai type import
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
-  IconButton, Table, TableBody, TableCell, TableHead, TableRow,
-  TextField, Typography, CircularProgress
+  IconButton, TextField, Typography, CircularProgress
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import { useState } from 'react';
 import { useNotify } from '../stores/notify';
 
+// ====== Type ======
 type MenuItem = { id:number; name:string; price:number };
 
 // ====== Validasi Zod ======
+// Pake z.number() + transform biar selalu jadi number
 const schema = z.object({
   name: z.string().min(2, "Nama minimal 2 huruf"),
-  price: z.coerce.number().positive("Harga harus lebih dari 0"),
+  price: z.union([
+    z.string().regex(/^\d+$/, "Harga harus angka").transform(val => Number(val)),
+    z.number().positive("Harga harus lebih dari 0")
+  ])
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -36,11 +41,10 @@ export default function MenuPage(){
   });
 
   // ====== FORM ======
-  const { register, handleSubmit, reset, formState:{ errors, isSubmitting } } =
-    useForm<FormValues>({
-      resolver: zodResolver(schema) as any,
-      defaultValues: { name: "", price: 0 }
-    });
+  const { register, handleSubmit, reset, formState:{ 
+    errors, isSubmitting } } = 
+    useForm<FormValues>({ resolver: 
+    zodResolver(schema) as any, defaultValues: { name: "", price: 0 } });
 
   // ====== MUTATIONS ======
   const addMutation = useMutation({
@@ -74,7 +78,7 @@ export default function MenuPage(){
   });
 
   // ====== HANDLERS ======
-  const onSubmit = (values: FormValues) => {
+  const onSubmit: SubmitHandler<FormValues> = (values) => {
     if (editItem) {
       updateMutation.mutate({ id: editItem.id, ...values });
     } else {
@@ -107,33 +111,40 @@ export default function MenuPage(){
       {isLoading ? (
         <CircularProgress />
       ) : (
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Nama</TableCell>
-              <TableCell>Harga</TableCell>
-              <TableCell>Aksi</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items?.map(item => (
-              <TableRow key={item.id}>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>Rp {item.price.toLocaleString()}</TableCell>
-                <TableCell>
-                  <IconButton onClick={()=>handleOpenEdit(item)}>
-                    <Edit />
-                  </IconButton>
-                  <IconButton color="error" onClick={()=>{
-                    if (confirm("Hapus menu ini?")) deleteMutation.mutate(item.id);
-                  }}>
-                    <Delete />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 2,
+          }}
+        >
+          {items?.map(item => (
+            <Box
+              key={item.id}
+              sx={{
+                border: "1px solid #ddd",
+                borderRadius: 2,
+                p: 2,
+                bgcolor: "background.paper",
+              }}
+            >
+              <Typography variant="h6">{item.name}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Rp {item.price.toLocaleString()}
+              </Typography>
+              <Box mt={1} display="flex" gap={1}>
+                <IconButton onClick={()=>handleOpenEdit(item)}>
+                  <Edit />
+                </IconButton>
+                <IconButton color="error" onClick={()=>{
+                  if (confirm("Hapus menu ini?")) deleteMutation.mutate(item.id);
+                }}>
+                  <Delete />
+                </IconButton>
+              </Box>
+            </Box>
+          ))}
+        </Box>
       )}
 
       {/* Dialog Tambah/Edit */}
@@ -143,11 +154,13 @@ export default function MenuPage(){
           <DialogContent>
             <TextField
               fullWidth margin="normal" label="Nama"
-              {...register('name')} error={!!errors.name} helperText={errors.name?.message}
+              {...register('name')}
+              error={!!errors.name} helperText={errors.name?.message}
             />
             <TextField
               fullWidth margin="normal" label="Harga" type="number"
-              {...register('price')} error={!!errors.price} helperText={errors.price?.message}
+              {...register('price')}
+              error={!!errors.price} helperText={errors.price?.message}
             />
           </DialogContent>
           <DialogActions>

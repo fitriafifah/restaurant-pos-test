@@ -1,40 +1,45 @@
-import { useQuery } from '@tanstack/react-query';
-import api from '../lib/api';
-import { useNavigate } from 'react-router-dom';
+import { useQuery } from "@tanstack/react-query";
+import api from "../lib/api";
+import { useNavigate } from "react-router-dom";
 
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-import Alert from '@mui/material/Alert';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 
 type Table = {
   id: number;
   number: number;
-  status: 'available' | 'occupied';
+  status: "available" | "occupied";
+  order_id?: number;
 };
 
-export default function PublicTablesPage() {
+export default function PublicTablesPage({ isDetail = false }: { isDetail?: boolean }) {
   const nav = useNavigate();
 
   const { data: tables, isLoading, error } = useQuery<Table[]>({
-    queryKey: ['tables'],
-    queryFn: async () => (await api.get('/tables')).data,
+    queryKey: ["tables"],
+    queryFn: async () => (await api.get("/tables")).data,
   });
 
   if (isLoading) return <CircularProgress />;
   if (error) return <Alert severity="error">Gagal memuat daftar meja</Alert>;
 
   return (
-    <div>
-      <Typography variant="h5" mb={2}>Daftar Meja</Typography>
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h5" mb={2}>
+        Daftar Meja
+      </Typography>
 
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          display: "grid",
+          gridTemplateColumns: isDetail ? "1fr" : "repeat(auto-fill, minmax(240px, 1fr))",
           gap: 2,
         }}
       >
@@ -43,21 +48,33 @@ export default function PublicTablesPage() {
             <CardContent>
               <Typography variant="h6">Meja #{t.number}</Typography>
               <Typography>Status: {t.status}</Typography>
-              <Button
-                fullWidth
-                disabled={t.status !== 'available'}
-                onClick={async () => {
-                  const res = await api.post('/orders', { table_id: t.id });
-                  nav(`/orders/${res.data.id}`);
-                }}
-                sx={{ mt: 1 }}
-              >
-                {t.status === 'available' ? 'Buka Order' : 'Sedang Dipakai'}
-              </Button>
+
+              {t.status === "available" ? (
+                <Button
+                  fullWidth
+                  variant="contained"
+                  sx={{ mt: 1 }}
+                  onClick={async () => {
+                    const res = await api.post("/orders", { table_id: t.id });
+                    nav(`/orders/${res.data.id}`);
+                  }}
+                >
+                  Buka Order
+                </Button>
+              ) : (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 1 }}
+                  onClick={() => nav(`/orders/${t.order_id}`)}
+                >
+                  Lihat Order
+                </Button>
+              )}
             </CardContent>
           </Card>
         ))}
       </Box>
-    </div>
+    </Box>
   );
 }

@@ -2,50 +2,49 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController; // <-- tambahkan ini
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
-use App\Http\Controllers\ReceiptController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
+| Semua route untuk aplikasi POS restoran
 */
 
-// Route default Laravel
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
-// Route tambahan untuk login dan logout
+//
+// 🔑 AUTH
+//
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
-Route::get('/tables', [TableController::class, 'index']);
+//
+// 📋 PUBLIC
+//
+Route::get('/tables', [TableController::class, 'index']); 
+// 👉 Bisa dipindah ke dalam middleware kalau mau proteksi
 
-// --------- PROTECTED ROUTES ----------
+//
+// 🔒 PROTECTED
+//
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Menu
+    // 🍽️ Master Menu
     Route::apiResource('menu-items', MenuItemController::class);
 
-    // Orders
+    // 🧾 Orders
     Route::get('orders', [OrderController::class, 'index']);
     Route::post('orders', [OrderController::class, 'store']);
     Route::get('orders/{order}', [OrderController::class, 'show']);
     Route::patch('orders/{order}/close', [OrderController::class, 'close']);
-    Route::get('orders/{order}/receipt', [OrderController::class, 'receipt']);
+    Route::patch('orders/{order}/reopen', [OrderController::class, 'reopen']);
+    Route::get('orders/{order}/receipt', [OrderController::class, 'receipt']); // Download PDF struk
 
-    // Order Items
+    // 🥘 Order Items
     Route::post('orders/{order}/items', [OrderItemController::class, 'store']);
-
-    // Receipt (PDF)
-    //Route::post('/orders/{order}/receipt', [ReceiptController::class, 'pdf']);
+    Route::put('orders/{order}/items/{item}', [OrderItemController::class, 'update']);
+    Route::delete('orders/{order}/items/{item}', [OrderItemController::class, 'destroy']);
 });

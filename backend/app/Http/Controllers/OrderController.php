@@ -5,94 +5,117 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Table;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
-    // List orders
+    // ====== List Orders ======
     public function index(Request $request)
     {
-        $query = Order::with(['table','user','items.menuItem']);
+    $query = Order::with('table')->latest();
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-
-        return $query->get();
+    // ✅ filter status open / closed jika ada query param
+    if ($request->has('status')) {
+        $query->where('status', $request->status);
     }
 
-    // Show order detail
-    public function show(Order $order)
-    {
-        return $order->load(['table','user','items.menuItem']);
+    return $query->get();
     }
 
-    // Open order
+
+    // ====== Create New Order ======
     public function store(Request $request)
     {
         $data = $request->validate([
-            'table_id' => 'required|exists:tables,id'
+            'table_id' => 'required|exists:tables,id',
         ]);
 
-        return DB::transaction(function () use ($data) {
-            $table = Table::lockForUpdate()->find($data['table_id']);
-            if ($table->status === 'occupied') {
-                return response()->json(['message' => 'Table already occupied'], 400);
-            }
+        $table = Table::findOrFail($data['table_id']);
 
-            $order = Order::create([
-                'table_id' => $table->id,
-                'user_id' => auth()->id(),
-                'status' => 'open',
-                'opened_at' => now(),
-                'subtotal' => 0,
-                'tax' => 0,
-                'total' => 0,
-            ]);
+        // Tandai meja sebagai occupied
+        $table->update(['status' => 'occupied']);
 
-            $table->update(['status' => 'occupied']);
+        $order = Order::create([
+            'table_id' => $table->id,
+            'status'   => 'open',
+            'subtotal' => 0,
+            'tax'      => 0,
+            'total'    => 0,
+        ]);
 
-            return $order->load('table');
-        });
+        return response()->json($order->load('table'), 201);
     }
 
-    // Close order
-    public function close(Order $order)
+    // ====== Show Order Detail ======
+    public function show(Order $order)
     {
-        if ($order->status === 'closed') {
-            return response()->json(['message' => 'Order already closed'], 400);
-        }
+        $order->load(['items.menuItem', 'table']);
+
+        // Hitung ulang total setiap kali ditampilkan
+        $subtotal = $order->items->sum('line_total');
+        $tax = $subtotal * 0.1;
+        $total = $subtotal + $tax;
 
         $order->update([
-            'status' => 'closed',
-            'closed_at' => now()
+            'subtotal' => $subtotal,
+            'tax'      => $tax,
+            'total'    => $total,
         ]);
 
+        return response()->json([
+            'id'           => $order->id,
+            'table_number' => $order->table->number,
+            'status'       => $order->status,
+            'items'        => $order->items->map(fn($i) => [
+                'id'       => $i->id,
+                'menu_item_id' => $i->menu_item_id,
+                'name'     => $i->menuItem->name,
+                'price'    => $i->price_each,
+                'qty'      => $i->qty,
+                'subtotal' => $i->line_total,
+            ]),
+            'subtotal' => $subtotal,
+            'tax'      => $tax,
+            'total'    => $total,
+        ]);
+    }
+
+    // ====== Close Order ======
+    public function close(Order $order)
+    {
+        $order->update(['status' => 'closed']);
+
+        // Bebaskan meja
         $order->table->update(['status' => 'available']);
 
-        return $order->load(['table','items.menuItem']);
+        return response()->json([
+            'message' => 'Order closed',
+            'order'   => $order->fresh(),
+        ]);
     }
 
-    // Receipt PDF
+    // ====== Reopen Order ======
+    public function reopen(Order $order)
+    {
+        $order->update(['status' => 'open']);
+
+        // Tandai meja jadi occupied lagi
+        $order->table->update(['status' => 'occupied']);
+
+        return response()->json([
+            'message' => 'Order reopened',
+            'order'   => $order->fresh(),
+        ]);
+    }
+
+    // ====== Print Receipt ======
     public function receipt(Order $order)
     {
-    return response()->json([
-        'order_id' => $order->id,
-        'table' => $order->table->number,
-        'status' => $order->status,
-        'subtotal' => $order->subtotal,
-        'tax' => $order->tax,
-        'total' => $order->total,
-        'items' => $order->items->map(function ($item) {
-            return [
-                'name' => $item->menuItem->name,
-                'qty' => $item->qty,
-                'price_each' => $item->price_each,
-                'line_total' => $item->line_total,
-            ];
-        })
-    ]);
-    }
+    $order->load('items.menuItem', 'table');
 
+    $pdf = Pdf::loadView('receipts.order', compact('order'))
+              ->setPaper('A5', 'portrait'); // kertas kecil kayak nota
+
+    return $pdf->download("receipt-{$order->id}.pdf");
+    }
 }
