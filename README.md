@@ -123,3 +123,21 @@ Semua fitur tetap diimplementasikan:
 ---
 
 ⚡ Project ini siap dijalankan dan dites sesuai kebutuhan **Developer Test**.
+
+
+## 🖼️ Screenshots
+
+### Login Page
+![Login Page](assets/screenshot_1.png)
+
+### Dashboard
+![Dashboard](assets/screenshot_3.png)
+
+### Daftar Meja & Detail Order
+![Daftar Meja & Detail Order](assets/screenshot_6.png)
+
+### List Pesanan/Orders
+![List Pesanan/Orders](assets/screenshot_8.png)
+
+### Master Menu
+![Master Menu](assets/screenshot_11.png)
