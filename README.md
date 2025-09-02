@@ -128,16 +128,16 @@ Semua fitur tetap diimplementasikan:
 ## 🖼️ Screenshots
 
 ### Login Page
-![Login Page](assets/screenshot_1.png)
+![Login Page](assets/Screenshot_1.png)
 
 ### Dashboard
-![Dashboard](assets/screenshot_3.png)
+![Dashboard](assets/Screenshot_3.png)
 
 ### Daftar Meja & Detail Order
-![Daftar Meja & Detail Order](assets/screenshot_6.png)
+![Daftar Meja & Detail Order](assets/Screenshot_6.png)
 
 ### List Pesanan/Orders
-![List Pesanan/Orders](assets/screenshot_8.png)
+![List Pesanan/Orders](assets/Screenshot_8.png)
 
 ### Master Menu
-![Master Menu](assets/screenshot_11.png)
+![Master Menu](assets/Screenshot_11.png)
